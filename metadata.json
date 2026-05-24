@@ -1,6 +1,6 @@
 {
-  "name": "KostManager",
-  "description": "Modern SaaS platform for property owners to automate tenant management, rent collection, and income analytics. Streamline your housing business with professional tools.",
+  "name": "KosManage",
+  "description": "Sistem Manajemen Kost Modern - Kelola kamar, penghuni, pembayaran, jatuh tempo, dan laporan keuangan dalam satu aplikasi praktis.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
