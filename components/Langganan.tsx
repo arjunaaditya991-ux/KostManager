@@ -3,11 +3,22 @@ import { Award, Check, Crown, Flame, Sparkles, Zap } from 'lucide-react';
 
 interface LanggananProps {
   triggerAlert: (text: string, type?: 'success' | 'error') => void;
+  subscriptionStatus: 'active' | 'inactive';
+  setSubscriptionStatus: (status: 'active' | 'inactive') => void;
 }
 
-export const Langganan: React.FC<LanggananProps> = ({ triggerAlert }) => {
+export const Langganan: React.FC<LanggananProps> = ({ 
+  triggerAlert,
+  subscriptionStatus,
+  setSubscriptionStatus
+}) => {
   const handleUpgrade = () => {
-    triggerAlert('Terima kasih! Anda sedang berada dalam langganan aktif Paket Bulanan Pro.');
+    if (subscriptionStatus === 'inactive') {
+      setSubscriptionStatus('active');
+      triggerAlert('Langganan Berhasil Diaktifkan! Selamat menikmati fitur premium KosManage.');
+    } else {
+      triggerAlert('Terima kasih! Anda sedang berada dalam langganan aktif Paket Bulanan Pro.');
+    }
   };
 
   return (
@@ -25,9 +36,15 @@ export const Langganan: React.FC<LanggananProps> = ({ triggerAlert }) => {
           
           <div className="flex justify-between items-start flex-wrap gap-4 relative z-10">
             <div>
-              <span className="px-3.5 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase rounded-full tracking-wider border border-emerald-500/30">
-                PRO ACTIVE
-              </span>
+              {subscriptionStatus === 'active' ? (
+                <span className="px-3.5 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase rounded-full tracking-wider border border-emerald-500/30">
+                  PRO ACTIVE
+                </span>
+              ) : (
+                <span className="px-3.5 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase rounded-full tracking-wider border border-amber-500/30">
+                  BELUM BERLANGGANAN
+                </span>
+              )}
               <h2 className="text-3xl font-black text-white tracking-tight mt-3">Paket Bulanan</h2>
               <p className="text-xs text-slate-400 mt-2">Lisensi sewa bulanan aman tanpa batas kamar.</p>
             </div>
@@ -52,10 +69,10 @@ export const Langganan: React.FC<LanggananProps> = ({ triggerAlert }) => {
                 'Laporan pendapatan bulanan'
               ].map((fet, idx) => (
                 <div key={idx} className="flex items-center gap-2.5 font-bold text-slate-200">
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${subscriptionStatus === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}`}>
                     <Check className="w-3.5 h-3.5" />
                   </div>
-                  <span>{fet}</span>
+                  <span className={subscriptionStatus === 'active' ? 'text-slate-200' : 'text-slate-400'}>{fet}</span>
                 </div>
               ))}
             </div>
@@ -64,14 +81,18 @@ export const Langganan: React.FC<LanggananProps> = ({ triggerAlert }) => {
           <div className="h-[1px] bg-slate-850 my-6 relative z-10" />
 
           <div className="flex justify-between items-center flex-wrap gap-4 relative z-10 text-xs sm:text-sm font-medium">
-            <p className="text-slate-400">Masa perpanjangan otomatis berikutnya: <span className="text-emerald-400 font-bold">23 Juni 2026</span></p>
+            {subscriptionStatus === 'active' ? (
+              <p className="text-slate-400">Masa perpanjangan otomatis berikutnya: <span className="text-emerald-400 font-bold">23 Juni 2026</span></p>
+            ) : (
+              <p className="text-slate-400">Status langganan saat ini: <span className="text-amber-400 font-bold">Tidak Aktif</span></p>
+            )}
             <button 
               id="btn-langganan-lunas"
               onClick={handleUpgrade}
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-5 py-3 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5"
             >
               <Crown className="w-4 h-4 text-amber-300" />
-              Kelola Metode Bayar
+              {subscriptionStatus === 'active' ? 'Kelola Metode Bayar' : 'Aktifkan Paket Premium'}
             </button>
           </div>
         </div>

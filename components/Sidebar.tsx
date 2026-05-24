@@ -9,13 +9,15 @@ import {
   BarChart3, 
   Award,
   Settings,
-  LogOut
+  LogOut,
+  Lock
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  subscriptionStatus: 'active' | 'inactive';
 }
 
 const menuItems = [
@@ -30,7 +32,7 @@ const menuItems = [
   { id: 'pengaturan', label: 'Pengaturan', icon: Settings },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, subscriptionStatus }) => {
   return (
     <div className="w-64 bg-slate-900 h-screen flex flex-col text-slate-300 flex-shrink-0 z-10 shadow-xl" id="sidebar-container">
       <div className="p-6 border-b border-slate-800">
@@ -49,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
             id={`sidebar-tab-${item.id}`}
             onClick={() => setActiveTab(item.id)}
             className={cn(
-              "w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group relative",
+              "w-full flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 group relative text-left",
               activeTab === item.id 
                 ? "bg-primary text-white shadow-md shadow-primary/20 font-bold" 
                 : "hover:bg-slate-800 text-slate-400 hover:text-white font-medium"
@@ -62,7 +64,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
               "w-5 h-5 transition-transform duration-200 group-hover:scale-110",
               activeTab === item.id ? "text-white" : "text-slate-400 group-hover:text-white"
             )} />
-            <span className="text-sm">{item.label}</span>
+            <span className="text-sm flex-1">{item.label}</span>
+            {subscriptionStatus === 'inactive' && ['pembayaran', 'reminder', 'laporan'].includes(item.id) && (
+              <Lock className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors" />
+            )}
           </button>
         ))}
       </nav>

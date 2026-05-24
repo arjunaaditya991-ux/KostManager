@@ -9,11 +9,15 @@ import { DataKost } from './DataKost';
 import { Reminder } from './Reminder';
 import { Langganan } from './Langganan';
 import { Pengaturan } from './Pengaturan';
-import { Bell, Search, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { InactiveDashboard } from './InactiveDashboard';
+import { Bell, Search, User, CheckCircle2, AlertCircle, Crown, ShieldAlert } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'inactive'>('inactive');
+  const [showLockedModal, setShowLockedModal] = useState(false);
+  const [lockedModalFeature, setLockedModalFeature] = useState('');
 
   // 1. Unified state for Rooms (24 rooms: 18 occupied, 5 empty, 1 under repair)
   const [rooms, setRooms] = useState<Room[]>([
@@ -92,6 +96,15 @@ export const AppLayout: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (subscriptionStatus === 'inactive' && activeTab === 'dashboard') {
+      return (
+        <InactiveDashboard 
+          setSubscriptionStatus={setSubscriptionStatus} 
+          triggerAlert={triggerAlert} 
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'dashboard': 
         return (
@@ -141,10 +154,24 @@ export const AppLayout: React.FC = () => {
           />
         );
       case 'langganan': 
-        return <Langganan triggerAlert={triggerAlert} />;
+        return (
+          <Langganan 
+            triggerAlert={triggerAlert} 
+            subscriptionStatus={subscriptionStatus}
+            setSubscriptionStatus={setSubscriptionStatus}
+          />
+        );
       case 'pengaturan': 
         return <Pengaturan triggerAlert={triggerAlert} />;
       default: 
+        if (subscriptionStatus === 'inactive') {
+          return (
+            <InactiveDashboard 
+              setSubscriptionStatus={setSubscriptionStatus} 
+              triggerAlert={triggerAlert} 
+            />
+          );
+        }
         return (
           <Dashboard 
             rooms={rooms} 
@@ -180,11 +207,27 @@ export const AppLayout: React.FC = () => {
     }
   };
 
+  const handleSetActiveTab = (tabId: string) => {
+    const lockedTabs = ['pembayaran', 'reminder', 'laporan'];
+    if (subscriptionStatus === 'inactive' && lockedTabs.includes(tabId)) {
+      setLockedModalFeature(
+        tabId === 'pembayaran' 
+          ? 'Tagihan & QRIS' 
+          : tabId === 'reminder' 
+          ? 'Reminder Tagihan' 
+          : 'Laporan Pendapatan'
+      );
+      setShowLockedModal(true);
+      return;
+    }
+    setActiveTab(tabId);
+  };
+
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans" id="owner-app-layout-root">
       
       {/* Sidebar block */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={handleSetActiveTab} subscriptionStatus={subscriptionStatus} />
       
       {/* Main viewport block */}
       <main className="flex-1 flex flex-col h-full overflow-hidden">
@@ -220,6 +263,31 @@ export const AppLayout: React.FC = () => {
           {/* Status alerts, Title, Greeting, Avatar */}
           <div className="flex items-center gap-6">
             
+            {/* Dynamic Subscription Status Topbar Badge */}
+            <div className="flex items-center">
+              {subscriptionStatus === 'inactive' ? (
+                <span 
+                  onClick={() => {
+                    setLockedModalFeature('Akses Penuh KosManage');
+                    setShowLockedModal(true);
+                  }}
+                  className="cursor-pointer px-3.5 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-250 text-[10px] sm:text-xs font-black rounded-full select-none transition-colors"
+                  id="topbar-status-inactive"
+                >
+                  ● Belum Berlangganan
+                </span>
+              ) : (
+                <span 
+                  className="px-3.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-250 text-[10px] sm:text-xs font-black rounded-full select-none"
+                  id="topbar-status-active"
+                >
+                  ✔ Langganan Aktif
+                </span>
+              )}
+            </div>
+
+            <div className="h-6 w-[1px] bg-slate-200 hidden md:block"></div>
+
             {/* 2. Page Title Header Display */}
             <div className="text-right hidden md:block select-none" id="dashboard-title-topbar">
               <p className="text-[10px] font-black uppercase text-emerald-650 tracking-wider">Pemilik Kost</p>
@@ -264,6 +332,59 @@ export const AppLayout: React.FC = () => {
         </div>
 
       </main>
+
+      {/* Shared Locked Feature Detail Modal */}
+      {showLockedModal && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-55 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100 animate-in zoom-in-95 duration-150 flex flex-col items-center text-center">
+            
+            <button 
+              onClick={() => setShowLockedModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full hover:bg-slate-550/10 hover:bg-slate-50 flex items-center justify-center text-sm font-bold"
+            >
+              ✕
+            </button>
+
+            <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center border border-amber-100 mb-4 animate-bounce mt-2 shadow-xs">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+
+            <h3 className="text-xl font-black text-slate-900">Fitur Terkunci</h3>
+            {lockedModalFeature && (
+              <p className="text-xs bg-slate-100 border border-slate-150 text-slate-600 font-extrabold px-3 py-1 rounded-lg mt-2 font-mono uppercase tracking-wide">
+                Modul {lockedModalFeature}
+              </p>
+            )}
+            
+            <p className="text-sm text-slate-500 mt-3 mb-6 font-medium leading-relaxed">
+              Fitur ini tersedia setelah kamu mengaktifkan langganan KosManage.
+            </p>
+
+            <div className="w-full space-y-2.5">
+              <button 
+                onClick={() => {
+                  setSubscriptionStatus('active');
+                  triggerAlert('Langganan Berhasil Diaktifkan! Selamat menikmati fitur premium KosManage.');
+                  setShowLockedModal(false);
+                }}
+                id="btn-app-locked-modal-activate"
+                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all active:scale-98 shadow-sm"
+              >
+                <Crown className="w-4 h-4 text-amber-300 animate-pulse" />
+                Aktifkan Langganan
+              </button>
+              <button 
+                onClick={() => setShowLockedModal(false)}
+                className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-2xl text-xs hover:text-slate-950 transition-all duration-150"
+              >
+                Kembali
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
